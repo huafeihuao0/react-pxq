@@ -3,36 +3,55 @@ import ReactDOM from 'react-dom';
 import Route from './router/';
 import FastClick from 'fastclick';
 import registerServiceWorker from './registerServiceWorker';
-import {AppContainer} from 'react-hot-loader';
-import {Provider} from 'react-redux';
+import {AppContainer} from 'react-hot-loader'; //app热加载
+import {Provider} from 'react-redux';   //store提供者
 import store from '@/store/store';
+
 import './utils/setRem';
 import './style/base.css';
 
+(function init()
+{
+    //渲染根组件
+    renderRoot(Route);
+    //热替换
+    hotReplace();
 
-FastClick.attach(document.body);
-const render = Component =>//
+    //附着点击事件
+    FastClick.attach(document.body);
+    //注册后台缓存服务
+    registerServiceWorker();
+})()
+
+
+/**
+ * 渲染根组件
+ * */
+function renderRoot(Route)
 {
     ReactDOM.render(
         //绑定redux、热加载
         <Provider store={store}>
             <AppContainer>
-                <Component/>
+                <Route />
             </AppContainer>
         </Provider>,
-        document.getElementById('root'),
+        document.getElementById('root'),//root挂载点
     )
 }
 
-render(Route);
-
-// Webpack Hot Module Replacement API
-if (module.hot)
+/**
+* 热替换
+* */
+function hotReplace()
 {
-    module.hot.accept('./router/', () =>
+    if (module.hot)
     {
-        render(Route);
-    })
+        module.hot.accept('./router/', () =>
+        {
+            renderRoot(Route);
+        })
+    }
 }
 
-registerServiceWorker();
+
