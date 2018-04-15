@@ -2,7 +2,7 @@ import axios from 'axios';
 import envconfig from '@/envconfig/envconfig';
 
 /**
- * 主要params参数
+ * 【Http请求工具】
  * @params method {string} 方法名
  * @params url {string} 请求地址  例如：/login 配合baseURL组成完整请求地址
  * @params baseURL {string} 请求地址统一前缀 ***需要提前指定***  例如：http://cangdu.org
@@ -27,21 +27,22 @@ export default class Server
                 params = {};
             }
             let _option = params;
-            _option = {
-                method,
-                url,
-                baseURL: envconfig.baseURL,
-                timeout: 30000,
-                params: null,
-                data: null,
-                headers: null,
-                withCredentials: true, //是否携带cookies发起请求
-                validateStatus: (status) =>
+            _option =
                 {
-                    return status >= 200 && status < 300;
-                },
-                ...params,
-            }
+                    method,
+                    url,
+                    baseURL: envconfig.baseURL,
+                    timeout: 30000,
+                    params: null,
+                    data: null,
+                    headers: null,
+                    withCredentials: true, //是否携带cookies发起请求
+                    validateStatus: (status) =>
+                    {
+                        return status >= 200 && status < 300;
+                    },
+                    ...params,
+                }
             axios.request(_option).then(res =>
             {
                 resolve(typeof res.data === 'object' ? res.data : JSON.parse(res.data))
