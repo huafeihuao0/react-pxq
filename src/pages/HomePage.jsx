@@ -84,7 +84,8 @@ class Home
                     <form className="home-form">
                         <div className="home-form-tiem">
                             <span>销售金额：</span>
-                            <input type="text" placeholder="请输入订单金额" value={this.props.formData.orderSum}
+                            <input type="text" placeholder="请输入订单金额"
+                                   value={this.props.formData.orderSum}
                                    onChange={this.handleInput.bind(this, 'orderSum')}/>
                         </div>
                         <div className="home-form-tiem">
