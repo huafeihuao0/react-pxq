@@ -1,6 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import Route from './router/';
+import Route from './router';
 import FastClick from 'fastclick';
 import registerServiceWorker from './registerServiceWorker';
 import {AppContainer} from 'react-hot-loader'; //app热加载
@@ -47,7 +47,7 @@ function hotReplace()
 {
     if (module.hot)
     {
-        module.hot.accept('./router/', () =>
+        module.hot.accept('./router', () =>
         {
             renderRoot(Route);
         })

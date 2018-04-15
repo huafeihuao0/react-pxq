@@ -1,21 +1,19 @@
 import React, {Component} from 'react';
 import {Link} from 'react-router-dom';
-
 import {fromJS, is} from 'immutable';
 import PropTypes from 'prop-types';
+
 import API from '@/api/api';
 import envconfig from '@/envconfig/envconfig';
-
 /**
-* 【redux】
-* */
+ * 【redux】
+ * */
 import {connect} from 'react-redux';
 import {clearData, saveFormData, saveImg} from '@/store/home/action';
 import {clearSelected} from '@/store/production/action';
-
 /**
-* 【子组件】
-* */
+ * 【子组件】
+ * */
 import PublicHeader from '@/components/header/header';
 import PublicAlert from '@/components/alert/alert';
 import TouchableOpacity from '@/components/TouchableOpacity/TouchableOpacity';
@@ -26,23 +24,117 @@ import './HomePage.css';
 class Home
     extends Component
 {
-    static propTypes = {
-        formData: PropTypes.object.isRequired,
-        saveFormData: PropTypes.func.isRequired,
-        saveImg: PropTypes.func.isRequired,
-        clearData: PropTypes.func.isRequired,
-        clearSelected: PropTypes.func.isRequired,
-    }
+    //静态组件检查
+    static propTypes =//
+        {
+            formData: PropTypes.object.isRequired,
+            saveFormData: PropTypes.func.isRequired,
+            saveImg: PropTypes.func.isRequired,
+            clearData: PropTypes.func.isRequired,
+            clearSelected: PropTypes.func.isRequired,
+        }
 
-    state = {
-        alertStatus: false, //弹框状态
-        alertTip: '', //弹框提示文字
-    }
+    //默认状态
+    state =//
+        {
+            alertStatus: false, //弹框状态
+            alertTip: '', //弹框提示文字
+        }
     /**
      * 已选择的商品数据
      * @type {Array}
      */
     selectedProList = [];
+
+    /**
+     * 组件即将更新
+     * */
+    componentWillReceiveProps(nextProps)
+    {
+        if (!is(fromJS(this.props.proData), fromJS(nextProps.proData)))
+        {
+            this.initData(nextProps);
+        }
+    }
+
+    /**
+    * 是否更新
+    * */
+    shouldComponentUpdate(nextProps, nextState)
+    {
+        return !is(fromJS(this.props), fromJS(nextProps)) || !is(fromJS(this.state), fromJS(nextState))
+    }
+
+    /**
+    * 即将挂载
+    * */
+    componentWillMount()
+    {
+        this.initData(this.props);
+    }
+
+    render()
+    {
+        return (
+            <main className="home-container">
+                <PublicHeader title='首页' record/>
+                {/*基本信息区*/}
+                <div>
+                    <p className="common-title">请录入您的信息</p>
+                    <form className="home-form">
+                        <div className="home-form-tiem">
+                            <span>销售金额：</span>
+                            <input type="text" placeholder="请输入订单金额" value={this.props.formData.orderSum}
+                                   onChange={this.handleInput.bind(this, 'orderSum')}/>
+                        </div>
+                        <div className="home-form-tiem">
+                            <span>客户姓名：</span>
+                            <input type="text" placeholder="请输入客户姓名" value={this.props.formData.name}
+                                   onChange={this.handleInput.bind(this, 'name')}/>
+                        </div>
+                        <div className="home-form-tiem">
+                            <span>客户电话：</span>
+                            <input type="text" maxLength="13" placeholder="请输入客户电话" value={this.props.formData.phoneNo}
+                                   onChange={this.handleInput.bind(this, 'phoneNo')}/>
+                        </div>
+                    </form>
+                </div>
+                {/*产品销售区*/}
+                <div>
+                    <p className="common-title">请选择销售的产品</p>
+                    <Link to="/production" className="common-select-btn">
+                        {
+                            this.selectedProList.length ? <ul className="selected-pro-list">
+                                {
+                                    this.selectedProList.map((item, index) =>
+                                    {
+                                        return <li key={index}
+                                                   className="selected-pro-item ellipsis">{item.product_name}x{item.selectNum}</li>
+                                    })
+                                }
+                            </ul> : '选择产品'
+                        }
+                    </Link>
+                </div>
+                {/*发票上传*/}
+                <div className="upload-img-con">
+                    <p className="common-title">请上传发票凭证</p>
+                    <div className="file-lable">
+                        <span className="common-select-btn">上传图片</span>
+                        <input type="file" onChange={this.uploadImg}/>
+                    </div>
+                    <img src={this.props.formData.imgpath} className="select-img" alt=""/>
+                </div>
+                {/*提交按钮*/}
+                <TouchableOpacity className="submit-btn" text="提交"
+                    clickCallBack={this.sumitForm}/>
+                {/*警告框*/}
+                <PublicAlert closeAlert={this.closeAlert}
+                    alertTip={this.state.alertTip}
+                    alertStatus={this.state.alertStatus}/>
+            </main>
+        );
+    }
 
     /**
      * 将表单数据保存至redux，保留状态
@@ -62,15 +154,13 @@ class Home
             case 'phoneNo':
                 value = this.padStr(value.replace(/\D/g, ''), [3, 7], ' ', event.target);
                 break;
-            default:
-                ;
         }
         this.props.saveFormData(value, type);
     }
 
-    /*
-    上传图片，并将图片地址存到redux，保留状态
-     */
+    /**
+     * 上传图片，并将图片地址存到redux，保留状态
+     * */
     uploadImg = async event =>
     {
         try
@@ -86,7 +176,9 @@ class Home
         }
     }
 
-    // 提交表单
+    /**
+     * 提交表单
+     * */
     sumitForm = () =>
     {
         const {orderSum, name, phoneNo} = this.props.formData;
@@ -112,7 +204,9 @@ class Home
         })
     }
 
-    // 关闭弹款
+    /**
+     * 关闭弹款
+     * */
     closeAlert = () =>
     {
         this.setState({
@@ -121,7 +215,9 @@ class Home
         })
     }
 
-    // 初始化数据，获取已选择的商品
+    /**
+     * 初始化数据，获取已选择的商品
+     * */
     initData = props =>
     {
         this.selectedProList = [];
@@ -133,88 +229,23 @@ class Home
             }
         })
     }
-
-    componentWillReceiveProps(nextProps)
-    {
-        if (!is(fromJS(this.props.proData), fromJS(nextProps.proData)))
-        {
-            this.initData(nextProps);
-        }
-    }
-
-    shouldComponentUpdate(nextProps, nextState)
-    {
-        return !is(fromJS(this.props), fromJS(nextProps)) || !is(fromJS(this.state), fromJS(nextState))
-    }
-
-    componentWillMount()
-    {
-        this.initData(this.props);
-    }
-
-
-    render()
-    {
-
-        return (
-            <main className="home-container">
-                <PublicHeader title='首页' record/>
-                <p className="common-title">请录入您的信息</p>
-                <form className="home-form">
-                    <div className="home-form-tiem">
-                        <span>销售金额：</span>
-                        <input type="text" placeholder="请输入订单金额" value={this.props.formData.orderSum}
-                               onChange={this.handleInput.bind(this, 'orderSum')}/>
-                    </div>
-                    <div className="home-form-tiem">
-                        <span>客户姓名：</span>
-                        <input type="text" placeholder="请输入客户姓名" value={this.props.formData.name}
-                               onChange={this.handleInput.bind(this, 'name')}/>
-                    </div>
-                    <div className="home-form-tiem">
-                        <span>客户电话：</span>
-                        <input type="text" maxLength="13" placeholder="请输入客户电话" value={this.props.formData.phoneNo}
-                               onChange={this.handleInput.bind(this, 'phoneNo')}/>
-                    </div>
-                </form>
-                <div>
-                    <p className="common-title">请选择销售的产品</p>
-                    <Link to="/production" className="common-select-btn">
-                        {
-                            this.selectedProList.length ? <ul className="selected-pro-list">
-                                {
-                                    this.selectedProList.map((item, index) =>
-                                    {
-                                        return <li key={index}
-                                                   className="selected-pro-item ellipsis">{item.product_name}x{item.selectNum}</li>
-                                    })
-                                }
-                            </ul> : '选择产品'
-                        }
-                    </Link>
-                </div>
-                <div className="upload-img-con">
-                    <p className="common-title">请上传发票凭证</p>
-                    <div className="file-lable">
-                        <span className="common-select-btn">上传图片</span>
-                        <input type="file" onChange={this.uploadImg}/>
-                    </div>
-                    <img src={this.props.formData.imgpath} className="select-img" alt=""/>
-                </div>
-                <TouchableOpacity className="submit-btn" clickCallBack={this.sumitForm} text="提交"/>
-                <PublicAlert closeAlert={this.closeAlert} alertTip={this.state.alertTip}
-                             alertStatus={this.state.alertStatus}/>
-            </main>
-        );
-    }
 }
 
-export default connect(state => ({
-    formData: state.formData,
-    proData: state.proData,
-}), {
-    saveFormData,
-    saveImg,
-    clearData,
-    clearSelected,
-})(Home);
+/**
+ * 【将页面属性和动作绑定到store，并导出】
+ * */
+const mappingPropsToStore = state =>
+    ({
+        formData: state.formData,
+        proData: state.proData,
+    })
+
+const homeActions =
+    {
+        saveFormData,
+        saveImg,
+        clearData,
+        clearSelected,
+    }
+
+export default connect(mappingPropsToStore, homeActions)(Home);
